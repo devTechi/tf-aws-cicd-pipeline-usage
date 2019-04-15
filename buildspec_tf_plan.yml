@@ -16,19 +16,29 @@ phases:
   pre_build:
     commands:
       - echo Entered the pre_build phase...
+      - SRCDIR="$(pwd)"
       - cd terraform
-      - terraform init -backend-config="region=$REGION"
+      # colored output is right now not supported by CodeBuild
+      - terraform init -no-color -backend-config="region=$REGION"
         -backend-config="bucket=$STATE_BUCKET_NAME"
-        -backend-config="key=$PROJECTNAME/$PROJECTNAME.tfstate"
-        -backend-config="role_arn=$TF_ROLE"
+        -backend-config="key=$PROJECTNAME/$PROJECTNAME-$STAGE.tfstate"
+        # -backend-config="role_arn=$TF_ROLE"
   build:
     commands:
-      - echo Entered the build phase...
-      - echo Build started on $(date)
-      - terraform plan -var ACTUAL_STAGE="$STAGE" -var AWS_PROFILE="$TF_ROLE"
+      - echo Entered the build phase...build started on $(date)
+      - echo $(pwd)
+      - ls -la
+      # colored output is right now not supported by CodeBuild
+      - terraform plan -no-color -var ACTUAL_STAGE="$STAGE" -var AWS_REGION="$REGION" #-var AWS_PROFILE="$TF_ROLE"
   post_build:
     commands:
       - echo Build completed on $(date)
-cache:
-  paths:
-    - terraform/.terraform
+artifacts:
+  type: zip
+  files:
+    # - "terraform/.terraform/**/*"
+    - "./**/*"
+  name: "sources-and-tf-folder"
+# cache:
+#   paths:
+#     - "terraform/.terraform/**/*"

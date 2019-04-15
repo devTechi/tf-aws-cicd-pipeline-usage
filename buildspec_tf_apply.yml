@@ -3,17 +3,27 @@ version: 0.2
 
 env:
   variables:
+    REGION: "eu-central-1"
+    PROJECTNAME: "iac-core-demo"
+    STATE_BUCKET_NAME: "accountid-terraform-states" # example of a state bucket name
     STAGE: "dev"
 
 phases:
+  pre_build:
+    commands:
+      - echo Entered the pre_build phase...
+      - SRCDIR="$(pwd)"
+      - cd terraform
   build:
     commands:
-      - echo Entered the build phase...
-      - echo Build started on $(date)
-      - terraform apply -input=false -auto-approve -var ACTUAL_STAGE="$STAGE" -var AWS_PROFILE="$TF_ROLE"
+      - echo Entered the build phase...build started on $(date)
+      - echo $(pwd)
+      - ls -la
+      # colored output is right now not supported by CodeBuild
+      - terraform apply -no-color -input=false -auto-approve -var ACTUAL_STAGE="$STAGE" -var AWS_REGION="$REGION" #-var AWS_PROFILE="$TF_ROLE"
   post_build:
     commands:
       - echo Build completed on $(date)
-cache:
-  paths:
-    - terraform/.terraform
+# cache:
+#   paths:
+#     - "terraform/.terraform/**/*"
